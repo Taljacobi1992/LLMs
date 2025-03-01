@@ -1,3 +1,4 @@
 # LLMs
 
-Welcome to my LLMs repository, here I'll share some projects I did in my free time and with my passion to AI and and ML. In this repository, I will focuse on cool LLMs abilities.
+Welcome to my LLMs repository! Here, I share projects I've worked on in my free time, driven by my passion for AI and ML. This repository focuses on showcasing cool LLM capabilities."
+Let me know if you'd like any tweaks.
