@@ -43,12 +43,14 @@ def stream_answer(question):
 # Get gpt-4o-mini to answer, with streaming
 stream_answer(question)
 
+my_question = input("Please enter your question:")
+
 # Get Llama 3.2 to answer
 response = ollama.chat(
     model=MODEL_LLAMA,
     messages=[
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": question}
+        {"role": "user", "content": my_question}
     ]
 )
 reply = response.get("message", {}).get("content", "No response received")
