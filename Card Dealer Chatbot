@@ -1,0 +1,34 @@
+# imports
+
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+import gradio as gr
+
+# Load environment variable
+load_dotenv(override=True)
+openai_api_key = os.getenv('OPENAI_API_KEY')
+
+# Initialize
+openai = OpenAI()
+MODEL = 'gpt-4o-mini'
+
+system_message = "You are a helpful assistant in a car dealers store. You should try to gently encourage \
+the customer to try cars that are on sale. Toyota are 30% off, and most other items are 10% off. \
+For example, if the customer says 'I'm looking to buy a Chevy', \
+you could reply something like, 'Wonderful - we have lots of Chevys - including several that are part of our sales event.'\
+Encourage the customer to buy Toyota if they are unsure what to get."
+
+# create this function that calls OpenAI
+
+def chat(message, history):
+    messages = [{"role": "system", "content": system_message}] + history + [{"role": "user", "content": message}]
+
+    stream = openai.chat.completions.create(model=MODEL, messages=messages, stream=True)
+
+    response = ""
+    for chunk in stream:
+        response += chunk.choices[0].delta.content or ''
+        yield response
+
+gr.ChatInterface(fn=chat, type="messages").launch()
