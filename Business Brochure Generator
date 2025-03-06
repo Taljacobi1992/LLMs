@@ -164,8 +164,6 @@ def stream_brochure(company_name, url):
 stream_brochure("HuggingFace", "https://huggingface.co")
 
 
-
-
 # Now with Gradio Interface
 
 # A class to represent a Webpage
