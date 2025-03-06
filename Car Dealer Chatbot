@@ -32,3 +32,4 @@ def chat(message, history):
         yield response
 
 gr.ChatInterface(fn=chat, type="messages").launch()
+
