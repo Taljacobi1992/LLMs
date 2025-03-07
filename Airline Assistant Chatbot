@@ -51,7 +51,6 @@ def get_airline_name(destination_city):
     city = destination_city.lower()
     return operated_airline.get(city, "Unknown")
 
-
 airline_function = {
     "name": "get_airline_name",
     "description": "Get the airline name of destination city only when asked directly. Call this whenever you need to know the airline name, for example when a customer asks 'which airline fly to this city'",
