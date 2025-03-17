@@ -5,8 +5,6 @@ from bs4 import BeautifulSoup
 from IPython.display import Markdown, display
 import ollama
 
-Website Summarization Using llama3.2 via Ollama
-
 # Some websites need you to use proper headers when fetching them:
 headers = {
  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
