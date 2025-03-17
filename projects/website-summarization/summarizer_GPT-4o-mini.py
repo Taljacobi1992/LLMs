@@ -7,8 +7,7 @@ from bs4 import BeautifulSoup
 from IPython.display import Markdown, display
 from openai import OpenAI
 
-
-
+	
 # Load environment variables in a file called .env
 
 load_dotenv(override=True)
