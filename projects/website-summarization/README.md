@@ -1,1 +1,1 @@
-Website Summarization Using GPT-4o-mini
+Web page Summarization Using open source and close source
