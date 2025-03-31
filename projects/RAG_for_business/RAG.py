@@ -12,6 +12,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.schema import Document
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
+from langchain.vectorstores import FAISS
 import numpy as np
 from sklearn.manifold import TSNE
 import plotly.graph_objects as go
@@ -60,8 +61,10 @@ print(f"Document types found: {', '.join(doc_types)}")
 # Load the embeddings
 embeddings = OpenAIEmbeddings()
 
-# Create vectorstore
-vectorstore = Chroma.from_documents(documents=chunks, embedding=embeddings, persist_directory=db_name)
+# Create vectorstore and putting the chunks of data that associates a Vector Embedding with each chunk
+# popular open source Vector Database based are Chroma and FAISS, uncomment one of the lines:
+# vectorstore = Chroma.from_documents(documents=chunks, embedding=embeddings, persist_directory=db_name)
+# vectorstore = FAISS.from_documents(chunks, embedding=embeddings)
 
 
 collection = vectorstore._collection
