@@ -4,4 +4,4 @@ langchain
 numpy
 sklearn
 plotly
-import gradio as gr
+gradio
