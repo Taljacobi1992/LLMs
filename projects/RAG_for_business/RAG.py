@@ -3,19 +3,19 @@
 import os
 import glob
 from dotenv import load_dotenv
+import numpy as np
+from sklearn.manifold import TSNE
+import plotly.graph_objects as go
 import gradio as gr
 
 # imports for langchain
-
 from langchain.document_loaders import DirectoryLoader, TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.schema import Document
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain.vectorstores import FAISS
-import numpy as np
-from sklearn.manifold import TSNE
-import plotly.graph_objects as go
+
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 
@@ -24,7 +24,7 @@ from langchain.chains import ConversationalRetrievalChain
 MODEL = "gpt-4o-mini"
 db_name = "vector_db"
 
-# Load environment variables in a file called .env
+# Load environment variables
 
 load_dotenv()
 os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY', 'your-key-if-not-using-env')
@@ -35,9 +35,9 @@ os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY', 'your-key-if-not-usin
 
 folders = glob.glob("knowledge-base/*")
 
-# With thanks to CG and Jon R, students on the course, for this fix needed for some users 
+
 text_loader_kwargs = {'encoding': 'utf-8'}
-# If that doesn't work, some Windows users might need to uncomment the next line instead
+# If that doesn't work, uncomment the next line instead
 # text_loader_kwargs={'autodetect_encoding': True}
 
 documents = []
