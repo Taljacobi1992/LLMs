@@ -1,1 +1,1 @@
-Whisper-1, Llama-3.1-8B with Quantization Phone Call Summarization
+whisper-large-v3-turbo, Llama-3.1-8B with Quantization Phone Call Summarization
