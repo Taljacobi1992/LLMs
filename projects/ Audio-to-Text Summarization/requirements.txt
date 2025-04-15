@@ -1,4 +1,4 @@
-python-dotenv
-openai
+huggingface_hub 
 transformers
 torch
+gradio 
