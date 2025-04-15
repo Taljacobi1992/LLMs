@@ -1,50 +1,14 @@
-# imports
-
+ imports
 import os
-from dotenv import load_dotenv
-from IPython.display import Markdown, display, update_display
-from openai import OpenAI
 from huggingface_hub import login
-from transformers import AutoTokenizer, AutoModelForCausalLM, TextStreamer, BitsAndBytesConfig
 import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig, AutoProcessor, AutoModelForSpeechSeq2Seq
+import gradio as gr
 
+# Log in to HuggingFace
+login(token=os.getenv("HF_TOKEN"))
 
-
-# Load environment variables
-
-load_dotenv(override=True)
-os.environ['HF_TOKEN'] = os.getenv('HF_TOKEN', 'your-key-if-not-using-env')
-os.environ['OPENAI_API_KEY'] = os.getenv('OPENAI_API_KEY', 'your-key-if-not-using-env')
-openai = OpenAI()
-
-# We will need GPU to run this pipeline
-
-print("CUDA Available: ", torch.cuda.is_available())
-print("Number of GPUs: ", torch.cuda.device_count())
-print("Current CUDA Device: ", torch.cuda.get_device_name(torch.cuda.current_device()))
-
-# Constants
-
-AUDIO_MODEL = "whisper-1"
-LLAMA = "meta-llama/Meta-Llama-3.1-8B-Instruct"
-
-audio_filename = "phone_20250219-113309__12085149358.mp3"
-
-# Convert audio to text using OpenAi audio.transcriptions
-audio_file = open(audio_filename, "rb")
-transcription = openai.audio.transcriptions.create(model=AUDIO_MODEL, file=audio_file, response_format="text")
-print(transcription)
-
-
-system_message = "You are an assistant that produces minutes of phone call from transcripts, with summary, key discussion points, takeaways and action items with owners, in markdown."
-user_prompt = f"Below is an extract transcript of a a phone call. Please write minutes in markdown, including a summary with attendees, location and date; discussion points; takeaways; and action items with owners.\n{transcription}"
-
-messages = [
-    {"role": "system", "content": system_message},
-    {"role": "user", "content": user_prompt}
-  ]
-
-
+# quantization setup
 quant_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_use_double_quant=True,
@@ -52,13 +16,102 @@ quant_config = BitsAndBytesConfig(
     bnb_4bit_quant_type="nf4"
 )
 
-
+# constants
+LLAMA = "meta-llama/Meta-Llama-3.1-8B-Instruct"
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 tokenizer = AutoTokenizer.from_pretrained(LLAMA)
 tokenizer.pad_token = tokenizer.eos_token
-inputs = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
-streamer = TextStreamer(tokenizer)
-model = AutoModelForCausalLM.from_pretrained(LLAMA, device_map="auto", quantization_config=quant_config)
-outputs = model.generate(inputs, max_new_tokens=2000, streamer=streamer)
+model = AutoModelForCausalLM.from_pretrained(LLAMA, use_auth_token=os.getenv("HF_TOKEN"), device_map="cuda:0", quantization_config=quant_config)
 
-response = tokenizer.decode(outputs[0])
-display(Markdown(response))
+
+# load Speech model, read audio file and convert to text
+def transcript_audio(audio_file):
+    torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
+    model_id = "openai/whisper-large-v3-turbo"
+
+    model = AutoModelForSpeechSeq2Seq.from_pretrained(
+        model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
+    )
+    model.to(device)
+
+    processor = AutoProcessor.from_pretrained(model_id)
+
+    pipe = pipeline(
+        "automatic-speech-recognition",
+        model=model,
+        tokenizer=processor.tokenizer,
+        feature_extractor=processor.feature_extractor,
+        torch_dtype=torch_dtype,
+        device=device,
+    )
+
+    result = pipe(audio_file, return_timestamps=True)
+    return result
+
+
+# promopts and summarizing the text
+def summarize_with_llama(transcript, context="Phone Call", language="English"):
+    if context == "Phone Call":
+        system_message = (
+            "You are an assistant that produces minutes of phone calls from transcripts, "
+            "with summary and key discussion points, in markdown."
+        )
+        user_prompt = (
+            "Below is an extract transcript of a phone call. "
+            "Please write minutes in markdown, including a summary, location, and discussion points."
+        )
+    elif context == "Meeting":
+        system_message = (
+            "You are an assistant that produces minutes of meetings from transcripts, "
+            "with summary, key discussion points, takeaways, and action items with owners, in markdown."
+        )
+        user_prompt = (
+            "Below is an extract transcript of a meeting. "
+            "Please write minutes in markdown, including a summary with attendees, location, and date; "
+            "discussion points; takeaways; and action items with owners."
+        )
+    else:
+        raise ValueError(f"Unknown context: {context}")
+
+    # Add language instruction
+    if language.lower() == "hebrew":
+        user_prompt += "\n\nWrite the entire generatated summary and points in Hebrew."
+    elif language.lower() == "english":
+        user_prompt += "\n\nWrite the entire summary in English."
+    else:
+        raise ValueError(f"Unsupported language: {language}")
+
+    messages = [
+        {"role": "system", "content": system_message},
+        {"role": "user", "content": f"{system_message}\n\n{user_prompt}\n\nTranscript:\n{transcript}"}
+    ]
+
+    input_features = tokenizer.apply_chat_template(messages, return_tensors="pt").to("cuda")
+    output_ids = model.generate(input_features, max_new_tokens=2000)
+    summary = tokenizer.decode(output_ids[0], skip_special_tokens=True).strip()
+    return summary
+
+
+# combining the two functions
+def transcribe_and_summarize(audio, choices, language):
+    try:
+        result = transcript_audio(audio)
+        transcript = result["text"]
+        return summarize_with_llama(transcript, context=choices, language=language)
+    except Exception as e:
+        return f"**Error:** {str(e)}"
+        
+
+# Gradio UI setup
+demo = gr.Interface(
+    fn=transcribe_and_summarize,
+    inputs=[
+        gr.Audio(type="filepath", label="Upload Audio"),
+        gr.Radio(["Phone Call", "Meeting"], label="Select Audio Type"),
+        gr.Radio(["English", "Hebrew"], label="Select Language Output")
+    ],
+    outputs=gr.Markdown(height=750),
+    title="Audio Summarizer"
+     demo.queue().launch()
+)
