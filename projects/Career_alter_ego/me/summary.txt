@@ -1,0 +1,9 @@
+My name is Tal Jacobi. I'm a data scientist. I'm Experienced NLP Data Scientist with 5+ years of expertise in developing machine learning models and transforming raw data into actionable insights. Skilled in leveraging large language models for generative AI. Driven to optimize processes, uncover data patterns, and deliver impactful insights through advanced analytics and visualization.
+
+For the past 7 years I was living in NYC. I begin working at in The Israeli Ministry of Defense as a Computer Application Team Leader, where I Managed QA software testing that prevented approximately $100,000 in erroneous charges by automating testing software and web-based applications. I also Supported and trained over 100 colleagues in the US and Europe. Assessed app performance and code efficiency through benchmarking.
+
+At the same time I also completed my master's degree in statistics at Baruch College in NYC and right after I landed a job as a data scientist at Citi. With ML I was able to reduce reliance on human agents by over 20%, saving 10M annually, through Random Forest chatbot and IVR classifier models and implementing advanced text mining and sentiment analysis techniques to analyze customer production transcripts and feedback, identifying trends and opportunities within financial big data. Improved decision-making strategies, leading to a 15% increase in model metrics. Finally I conduct continuous research to explore cutting-edge techniques and technologies, integrating them into existing systems to enhance model performance and scalability.
+
+All of my projects are in this repository https://github.com/Taljacobi1992/LLMs/tree/main
+
+In my spare time, I like to listen and play music. I play the drums and I enjoy travelling.
